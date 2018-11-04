@@ -10,16 +10,18 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
+from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
         rospy.init_node('tl_detector')
-
+        self.waypoints_2d = None
         self.pose = None
         self.waypoints = None
         self.camera_image = None
+        self.waypoint_tree = None
         self.lights = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -56,8 +58,12 @@ class TLDetector(object):
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
+        if not self.waypoints_2d:
+            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoint_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
+        #print('lights in callback :: ', msg.lights)
         self.lights = msg.lights
 
     def image_cb(self, msg):
@@ -70,6 +76,7 @@ class TLDetector(object):
         """
         self.has_image = True
         self.camera_image = msg
+        print('inside image clalback :: ', camera_image)
         light_wp, state = self.process_traffic_lights()
 
         '''
@@ -100,8 +107,8 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
-        return 0
+        closest_idx = self.waypoint_tree.query([x, y], 1)[1]
+        return closest_idx
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -113,14 +120,19 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+        #return light.state
+        print('does thsi have image :: ', self.has_image)
         if(not self.has_image):
             self.prev_light_loc = None
             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
-        #Get classification
-        return self.light_classifier.get_classification(cv_image)
+         #Call Classifier's code
+        print('just before classification')
+        test_light = self.light_classifier.get_classification(cv_image)
+        print(test_light)
+        return test_light
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -131,19 +143,40 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        light = None
-
+        #light = None
+        closest_light = None
+        line_wp_idx = None
+        
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
+        
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
+            #car_position = self.get_closest_waypoint(self.pose.pose)
+            car_wp_idx = self.get_closest_waypoint(self.pose.pose.x, self.pose.pose.y)
 
-        #TODO find the closest visible traffic light (if one exists)
-
-        if light:
-            state = self.get_light_state(light)
-            return light_wp, state
-        self.waypoints = None
+            #TODO find the closest visible traffic light (if one exists)
+            diff = len(self.waypoints.waypoints)
+            for i, light in enumerate(self.lights):
+                #Stopline waypoint index
+                line = stop_line_positions[i]
+                temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
+                print('CLosest waypoint ', temp_wp_idx)
+                #find closest stop line waypoint index
+                d = temp_wp_idx - car_wp_idx
+                print('diff d ', d)
+                if d >= 0 and d < diff:
+                    diff = d
+                    closest_light = light
+                    line_wp_idx = temp_wp_idx
+                    print('closest light --> ', light, '\n line_wp_idx --> ', line_wp_idx)
+                    
+        if closest_light :
+            #This is where you get the state, the function should call the classifier
+            print('inside closest light 172')
+            state = self.get_light_state(closest_light)
+            print('state received ::', state)
+            return line_wp_idx, state
+        
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
