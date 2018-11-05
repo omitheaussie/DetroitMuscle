@@ -1,5 +1,5 @@
 from styx_msgs.msg import TrafficLight
-
+import datetime
 import numpy as np
 import os
 import six.moves.urllib as urllib
@@ -40,7 +40,7 @@ BLUE_MAX = np.array([104,34,291],np.uint8)
 class TLClassifier(object):
     def __init__(self):
         #TODO load classifier
-        
+        print("Inside init")
         self.detection_graph = None
         self.session = None
         self.image_counter = 0
@@ -80,77 +80,81 @@ class TLClassifier(object):
         image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         image = Image.fromarray(image)
         
-        print("Image type:",type(image))
-        if (self.image_counter % 4) == 0:
-            with self.detection_graph.as_default():
-                with tf.Session(graph=self.detection_graph) as sess:
-                    image_np = self.load_image_into_numpy_array(image)
-                    image_np_expanded = np.expand_dims(image_np, axis=0)
-                    image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
-                    boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
-                    scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
-                    classes = self.detection_graph.get_tensor_by_name('detection_classes:0')
-                    num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
+        #print("Image type:",type(image))
+        if (self.image_counter % 16) == 0:
+            lightcolor = "UNKNOWN"
+            self.prevclass = TrafficLight.UNKNOWN
+            current_time=datetime.datetime.now()
+#            with self.detection_graph.as_default():
+#                with tf.Session(graph=self.detection_graph) as sess:
+            image_np = self.load_image_into_numpy_array(image)
+            image_np_expanded = np.expand_dims(image_np, axis=0)
+            image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
+            boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
+            scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
+            classes = self.detection_graph.get_tensor_by_name('detection_classes:0')
+            num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
 
-                    # Actual detection.
-                    (boxes, scores, classes, num_detections) = sess.run(
-                        [boxes, scores, classes, num_detections],
-                        feed_dict={image_tensor: image_np_expanded})
-                    boxes = np.squeeze(boxes)
-                    #classes = np.squeeze(classes).astype(np.int32)
-                    scores = np.squeeze(scores)
-                    #box_to_color_map = collections.defaultdict(str)
-                    min_score_thresh = 0.45
+            # Actual detection.
+            (boxes, scores, classes, num_detections) = self.session.run(
+                [boxes, scores, classes, num_detections],
+                feed_dict={image_tensor: image_np_expanded})
+            boxes = np.squeeze(boxes)
+            #classes = np.squeeze(classes).astype(np.int32)
+            scores = np.squeeze(scores)
+            #box_to_color_map = collections.defaultdict(str)
+            min_score_thresh = 0.45
 
-                    if scores is None or max(scores) > min_score_thresh:
-                        lightcolor = "UNKNOWN"
-                        box = tuple(boxes[scores.argmax(axis=0)].tolist())
-                        print(box)
-                        im_width, im_height = image.size
-                        ymin, xmin, ymax, xmax = box
-                        (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
-                                                      ymin * im_height, ymax * im_height)
-                        print(left, right, top, bottom)
-                        light = image.crop((int(left), int(top), int(right), int(bottom)))
-                        light = light.resize((40,90))
-                        #light = cv2.inRange(light, RED_MIN1, RED_MAX1) 
+            if scores is None or max(scores) > min_score_thresh:
+                
+                box = tuple(boxes[scores.argmax(axis=0)].tolist())
+                #print(box)
+                im_width, im_height = image.size
+                ymin, xmin, ymax, xmax = box
+                (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
+                                              ymin * im_height, ymax * im_height)
+                #print(left, right, top, bottom)
+                light = image.crop((int(left), int(top), int(right), int(bottom)))
+                light = light.resize((40,90))
+                #light = cv2.inRange(light, RED_MIN1, RED_MAX1) 
 
-                        toplight = light.crop((0,0,40,30))
-                        middlelight = light.crop((0,30,40,60))
-                        bottomlight = light.crop((0,60,40,90))
+                toplight = light.crop((0,0,40,30))
+                middlelight = light.crop((0,30,40,60))
+                bottomlight = light.crop((0,60,40,90))
 
-                        toplight = np.array(toplight)[:, :, ::-1].copy()
-                        middlelight = np.array(middlelight)[:, :, ::-1].copy()
-                        bottomlight = np.array(bottomlight)[:, :, ::-1].copy()
+                toplight = np.array(toplight)[:, :, ::-1].copy()
+                middlelight = np.array(middlelight)[:, :, ::-1].copy()
+                bottomlight = np.array(bottomlight)[:, :, ::-1].copy()
 
-                        toplight = cv2.cvtColor(toplight,cv2.COLOR_BGR2HSV)
-                        middlelight = cv2.cvtColor(middlelight,cv2.COLOR_BGR2HSV)
-                        bottomlight = cv2.cvtColor(bottomlight,cv2.COLOR_BGR2HSV)
+                toplight = cv2.cvtColor(toplight,cv2.COLOR_BGR2HSV)
+                middlelight = cv2.cvtColor(middlelight,cv2.COLOR_BGR2HSV)
+                bottomlight = cv2.cvtColor(bottomlight,cv2.COLOR_BGR2HSV)
 
-                        # red has hue 0 - 10 & 160 - 180 add another filter 
-                        # TODO  use Guassian mask
-                        frame_threshed1 = cv2.inRange(toplight, RED_MIN1, RED_MAX1) 
-                        frame_threshed2 = cv2.inRange(toplight, RED_MIN2, RED_MAX2)
-                        #print("Image:",imgno,":  ",end='')
-                        #print("Red count:", cv2.countNonZero(frame_threshed1) + cv2.countNonZero(frame_threshed2), ":", end='')
-                        if cv2.countNonZero(frame_threshed1) + cv2.countNonZero(frame_threshed2) > 50:
-                            lightcolor="RED"
-                            self.prevclass = TrafficLight.RED
-                            print(lightcolor)
+                # red has hue 0 - 10 & 160 - 180 add another filter 
+                # TODO  use Guassian mask
+                frame_threshed1 = cv2.inRange(toplight, RED_MIN1, RED_MAX1) 
+                frame_threshed2 = cv2.inRange(toplight, RED_MIN2, RED_MAX2)
+                #print("Image:",imgno,":  ",end='')
+                #print("Red count:", cv2.countNonZero(frame_threshed1) + cv2.countNonZero(frame_threshed2), ":", end='')
+                if cv2.countNonZero(frame_threshed1) + cv2.countNonZero(frame_threshed2) > 50:
+                    lightcolor="RED"
+                    self.prevclass = TrafficLight.RED
+                    print(lightcolor)
 
-                        frame_threshed3 = cv2.inRange(middlelight, YELLOW_MIN, YELLOW_MAX)
-                        #print("Yellow count:",cv2.countNonZero(frame_threshed3),":",end='')
-                        if cv2.countNonZero(frame_threshed3) > 50:
-                            lightcolor="YELLOW"
-                            self.prevclass = TrafficLight.YELLOW
-                            print(lightcolor)
+                frame_threshed3 = cv2.inRange(middlelight, YELLOW_MIN, YELLOW_MAX)
+                #print("Yellow count:",cv2.countNonZero(frame_threshed3),":",end='')
+                if cv2.countNonZero(frame_threshed3) > 50:
+                    lightcolor="YELLOW"
+                    self.prevclass = TrafficLight.YELLOW
+                    print(lightcolor)
 
-                        frame_threshed4 = cv2.inRange(bottomlight, GREEN_MIN, GREEN_MAX)
-                        #print("Green count:",cv2.countNonZero(frame_threshed4), ":    ", end='')
-                        if cv2.countNonZero(frame_threshed4) > 50:
-                            lightcolor="GREEN"
-                            self.prevclass = TrafficLight.GREEN
-                            print(lightcolor)
+                frame_threshed4 = cv2.inRange(bottomlight, GREEN_MIN, GREEN_MAX)
+                #print("Green count:",cv2.countNonZero(frame_threshed4), ":    ", end='')
+                if cv2.countNonZero(frame_threshed4) > 50:
+                    lightcolor="GREEN"
+                    self.prevclass = TrafficLight.GREEN
+                    print(lightcolor)
+                print("Time passed:", (datetime.datetime.now()-current_time).total_seconds())
         self.image_counter += 1      
         return self.prevclass
     
@@ -159,7 +163,10 @@ class TLClassifier(object):
         PATH_TO_CKPT = 'model/frozen_inference_graph.pb'
         #src/tl_detector/light_classification/
         self.detection_graph = tf.Graph()
-        with self.detection_graph.as_default():
+        config = tf.ConfigProto()
+        config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
+        with tf.Session(graph=self.detection_graph, config=config) as sess:
+          self.session = sess
           od_graph_def = tf.GraphDef()
           with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
             serialized_graph = fid.read()
