@@ -20,6 +20,7 @@ from google.protobuf import text_format
 import glob
 import collections
 from cv_bridge import CvBridge
+from timeit import default_timer as timer
 
 from styx_msgs.msg import TrafficLight
 RED_MIN1 = np.array([0, 100, 100],np.uint8)
@@ -77,11 +78,13 @@ class TLClassifier(object):
         #TODO implement light color prediction
         
         #cvimage = self.bridge.imgmsg_to_cv2(image, "rgb8")
-        image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(image)
         
-        #print("Image type:",type(image))
-        if (self.image_counter % 16) == 0:
+        
+        #print("Image classification")
+        if (self.image_counter % 1) == 0:
+            image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+            image = cv2.resize(image,(400,300))
+            image = Image.fromarray(image)
             lightcolor = "UNKNOWN"
             self.prevclass = TrafficLight.UNKNOWN
             current_time=datetime.datetime.now()
@@ -104,9 +107,9 @@ class TLClassifier(object):
             scores = np.squeeze(scores)
             #box_to_color_map = collections.defaultdict(str)
             min_score_thresh = 0.45
-
+            #print(max(scores))
             if scores is None or max(scores) > min_score_thresh:
-                
+                #print("Score is more than thresh")
                 box = tuple(boxes[scores.argmax(axis=0)].tolist())
                 #print(box)
                 im_width, im_height = image.size
@@ -154,13 +157,13 @@ class TLClassifier(object):
                     lightcolor="GREEN"
                     self.prevclass = TrafficLight.GREEN
                     print(lightcolor)
-                print("Time passed:", (datetime.datetime.now()-current_time).total_seconds())
+                #print("Time passed:", (datetime.datetime.now()-current_time).total_seconds())
         self.image_counter += 1      
         return self.prevclass
     
     def load_model(self):
         # Path to frozen detection graph. This is the actual model that is used for the object detection.
-        PATH_TO_CKPT = 'model/frozen_inference_graph.pb'
+        PATH_TO_CKPT = 'model/frozen_inference_graph_FullSizeImg.pb'
         #src/tl_detector/light_classification/
         self.detection_graph = tf.Graph()
         config = tf.ConfigProto()

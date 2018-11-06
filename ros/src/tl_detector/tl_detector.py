@@ -12,8 +12,10 @@ import cv2
 import yaml
 from scipy.spatial import KDTree
 from PIL import Image as pilImage
+from timeit import default_timer as timer
 
 STATE_COUNT_THRESHOLD = 3
+FREQUENCY_IN_HERTZ = 10.0
 
 class TLDetector(object):
     def __init__(self):
@@ -25,6 +27,7 @@ class TLDetector(object):
         self.camera_image = None
         self.waypoint_tree = None
         self.lights = []
+        self.img_proc_time = 0
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -76,6 +79,10 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        if self.img_proc_time > 0:
+            self.img_proc_time -= FREQUENCY_IN_HERTZ / 100
+            return
+        
         self.has_image = True
         self.camera_image = msg
         #
@@ -84,8 +91,11 @@ class TLDetector(object):
         #print("Sensor image:", type(msg))
         #('Sensor image:', <class 'sensor_msgs.msg._Image.Image'>)
         #print('inside image clalback :: ', camera_image)
+        starttime = timer()
         light_wp, state = self.process_traffic_lights()
-
+        endtime = timer()
+        self.img_proc_time = endtime - starttime
+        #print(self.img_proc_time)
         '''
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
@@ -128,21 +138,23 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        print("Light:", light.state)
-        return light.state
+        ######### Light state as sent by the simulator
+        #print("Light:", light.state)
+        #return light.state
+        #########
+        
         #print('does this have image :: ', self.has_image)
 #         if(not self.has_image):
 #             self.prev_light_loc = None
 #             return False
 
-#         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-
-#          #Call Classifier's code
-#         #print('just before classification')
-#         #self.light_classifier = TLClassifier()
-#         test_light = self.light_classifier.get_classification(cv_image)
-#        #print(test_light)
-       # return test_light
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+          #Call Classifier's code
+         #print('just before classification')
+         #self.light_classifier = TLClassifier()
+        test_light = self.light_classifier.get_classification(cv_image)
+        #print(test_light)
+        return test_light
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
