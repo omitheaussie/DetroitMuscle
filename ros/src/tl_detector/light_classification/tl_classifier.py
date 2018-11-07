@@ -158,6 +158,8 @@ class TLClassifier(object):
                     self.prevclass = TrafficLight.GREEN
                     print(lightcolor)
                 #print("Time passed:", (datetime.datetime.now()-current_time).total_seconds())
+            else:
+                self.prevclass = TrafficLight.UNKNOWN
         self.image_counter += 1      
         return self.prevclass
     

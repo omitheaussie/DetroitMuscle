@@ -15,7 +15,7 @@ from PIL import Image as pilImage
 from timeit import default_timer as timer
 
 STATE_COUNT_THRESHOLD = 3
-FREQUENCY_IN_HERTZ = 10.0
+FREQUENCY_IN_HERTZ = 25.0
 
 class TLDetector(object):
     def __init__(self):
