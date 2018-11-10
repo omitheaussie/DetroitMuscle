@@ -13,9 +13,10 @@ import yaml
 from scipy.spatial import KDTree
 from PIL import Image as pilImage
 from timeit import default_timer as timer
+import math
 
 STATE_COUNT_THRESHOLD = 3
-FREQUENCY_IN_HERTZ = 25.0
+FREQUENCY_IN_HERTZ = 15.0
 
 class TLDetector(object):
     def __init__(self):
@@ -188,10 +189,16 @@ class TLDetector(object):
                 #find closest stop line waypoint index
                 d = temp_wp_idx - car_wp_idx
                 #print('diff d ', d)
+
                 if d >= 0 and d < diff:
                     diff = d
                     closest_light = light
                     line_wp_idx = temp_wp_idx
+
+                    dist_light = math.sqrt((self.pose.pose.position.x - light.pose.pose.position.x)**2 +
+                                              (self.pose.pose.position.y - light.pose.pose.position.y)**2)
+                    if dist_light > 75:
+                        return -1, TrafficLight.UNKNOWN
                     #print('closest light --> ', light, '\n line_wp_idx --> ', line_wp_idx)
                     
         if closest_light :
