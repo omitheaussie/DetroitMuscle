@@ -32,14 +32,15 @@ FREQUENCY_IN_HERTZ = 10
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
-
+        rospy.loginfo("Inside waypointupdater init")
+        
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         
         # Pubulish final waypoints
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+        self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
         self.stopline_wp_idx = -1
@@ -49,9 +50,11 @@ class WaypointUpdater(object):
         self.waypoint_tree = None
         self.position = None
         self.current_vel = 0.0
+        self.loop_time = 0.0
         self.loop()
         
     def loop(self):
+        #print("In waypoint updater init")
         rate = rospy.Rate(FREQUENCY_IN_HERTZ)
         while not rospy.is_shutdown():
             if self.pose and self.base_waypoints:
@@ -84,6 +87,7 @@ class WaypointUpdater(object):
     # Publishes the final lane
     def publish_waypoints(self):
         final_lane = self.generate_lane()
+        #print("Commenting final_waypoints_pub")
         self.final_waypoints_pub.publish(final_lane)
 
 
@@ -111,12 +115,13 @@ class WaypointUpdater(object):
             p.pose = wp.pose
         
             # 2 is subtracted to ensure that the front of the car stops at the stop line
-            stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 4, 0)
             # Sum of distance between waypoints (sum of line segments)
             dist = self.distance(waypoints, i, stop_idx)
         
             # We can experiment with other functions too as this is quite steep 
             vel = math.sqrt(2 * MAX_DECEL * dist)
+            
             if vel < 1.:
                 vel = 0
 
@@ -157,6 +162,7 @@ class WaypointUpdater(object):
 
 if __name__ == '__main__':
     try:
+        #print('inside main')
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')

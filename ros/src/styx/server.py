@@ -7,7 +7,7 @@ import eventlet.wsgi
 import socketio
 import time
 from flask import Flask, render_template
-
+#import sys
 from bridge import Bridge
 from conf import conf
 
@@ -55,10 +55,23 @@ def obstacle(sid, data):
 def trafficlights(sid, data):
     bridge.publish_traffic(data)
 
+
 @sio.on('image')
 def image(sid, data):
+    #print('>>>>>>>>>>>>>>>> :: ', sys.getsizeof(data))
     bridge.publish_camera(data)
+'''
+count = 0
+skip = 1
+@sio.on('image')
 
+def image(sid, data):
+   global count
+   count += 1
+   if count%(skip+2)==0:
+       print('>>>>>>>>>>>>>>>> :: ', sys.getsizeof(data))
+       bridge.publish_camera(data) 
+'''
 if __name__ == '__main__':
 
     # wrap Flask application with engineio's middleware

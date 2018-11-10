@@ -13,9 +13,11 @@ import yaml
 from scipy.spatial import KDTree
 from PIL import Image as pilImage
 from timeit import default_timer as timer
+import numpy as np
 
 STATE_COUNT_THRESHOLD = 3
-FREQUENCY_IN_HERTZ = 25.0
+FREQUENCY_IN_HERTZ = 10.0
+LOOKAHEAD_WPS = 50
 
 class TLDetector(object):
     def __init__(self):
@@ -28,7 +30,8 @@ class TLDetector(object):
         self.waypoint_tree = None
         self.lights = []
         self.img_proc_time = 0
-
+        self.stopline_wp_idx = -1
+        
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
@@ -40,7 +43,7 @@ class TLDetector(object):
         rely on the position of the light and the camera image to predict it.
         '''
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
+        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb, queue_size=1)
         
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -82,7 +85,14 @@ class TLDetector(object):
         if self.img_proc_time > 0:
             self.img_proc_time -= FREQUENCY_IN_HERTZ / 100
             return
-        
+        '''
+        closest_idx = self.get_closest_waypoint_idx()
+        farthest_idx = closest_idx + LOOKAHEAD_WPS
+
+        if self.stopline_wp_idx >= farthest_idx:
+            print("No light in view")
+            return
+        ''' 
         self.has_image = True
         self.camera_image = msg
         #
@@ -113,7 +123,26 @@ class TLDetector(object):
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
-
+    
+    def get_closest_waypoint_idx(self):
+        x = self.pose.pose.position.x
+        y = self.pose.pose.position.y
+        closest_idx = self.waypoint_tree.query([x, y], 1)[1]
+        
+        # Check if closest is ahead or behind vehicle
+        closest_coord = self.waypoints_2d[closest_idx]
+        prev_coord = self.waypoints_2d[closest_idx - 1]
+        
+        # Equation for hyperplane through closest_coords
+        cl_vect = np.array(closest_coord)
+        prev_vect = np.array(prev_coord)
+        pos_vect = np.array([x, y])
+        
+        val = np.dot(cl_vect-prev_vect, pos_vect-cl_vect)
+        if val > 0:
+            closest_idx = (closest_idx + 1) % len(self.waypoints_2d)
+        return closest_idx
+    
     def get_closest_waypoint(self, x,y):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
@@ -144,16 +173,16 @@ class TLDetector(object):
         #########
         
         #print('does this have image :: ', self.has_image)
-#         if(not self.has_image):
-#             self.prev_light_loc = None
-#             return False
+        if(not self.has_image):
+             self.prev_light_loc = None
+             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
           #Call Classifier's code
-         #print('just before classification')
-         #self.light_classifier = TLClassifier()
+#         #print('just before classification')
+         #self.light_classifier = TLClassifie r()
         test_light = self.light_classifier.get_classification(cv_image)
-        #print(test_light)
+#        #print(test_light)
         return test_light
 
     def process_traffic_lights(self):
@@ -197,10 +226,16 @@ class TLDetector(object):
         if closest_light :
             #This is where you get the state, the function should call the classifier
             #print('inside closest light 172')
-            state = self.get_light_state(closest_light)
-            #print('state received ::', state)
-            return line_wp_idx, state
-        
+            car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y) 
+            
+            # Process image only if traffic signal is within 150 waypoints.
+            if line_wp_idx - car_wp_idx < 150:
+                #print("light within view")
+                state = self.get_light_state(closest_light)
+                #print('state received ::', state)
+                return line_wp_idx, state
+            #else:
+                #print("No traffic light in view")
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
