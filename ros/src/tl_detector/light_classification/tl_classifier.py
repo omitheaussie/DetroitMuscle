@@ -82,7 +82,7 @@ class TLClassifier(object):
         
         
         #print("Image classification")
-        if (self.image_counter % 1) == 0:
+        if (self.image_counter % 4) == 0:
             image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
             image = cv2.resize(image,(400,300))
             image = Image.fromarray(image)
@@ -143,21 +143,21 @@ class TLClassifier(object):
                 if cv2.countNonZero(frame_threshed1) + cv2.countNonZero(frame_threshed2) > 50:
                     lightcolor="RED"
                     self.prevclass = TrafficLight.RED
-                    #print(lightcolor)
+                    print(lightcolor)
 
                 frame_threshed3 = cv2.inRange(middlelight, YELLOW_MIN, YELLOW_MAX)
                 #print("Yellow count:",cv2.countNonZero(frame_threshed3),":",end='')
                 if cv2.countNonZero(frame_threshed3) > 50:
                     lightcolor="YELLOW"
                     self.prevclass = TrafficLight.YELLOW
-                    #print(lightcolor)
+                    print(lightcolor)
 
                 frame_threshed4 = cv2.inRange(bottomlight, GREEN_MIN, GREEN_MAX)
                 #print("Green count:",cv2.countNonZero(frame_threshed4), ":    ", end='')
                 if cv2.countNonZero(frame_threshed4) > 50:
                     lightcolor="GREEN"
                     self.prevclass = TrafficLight.GREEN
-                    #print(lightcolor)
+                    print(lightcolor)
                 #print("Time passed:", (datetime.datetime.now()-current_time).total_seconds())
             else:
                 self.prevclass = TrafficLight.UNKNOWN
@@ -166,7 +166,7 @@ class TLClassifier(object):
     
     def load_model(self):
         # Path to frozen detection graph. This is the actual model that is used for the object detection.
-        if self.is_site:
+        if not self.is_site:
             PATH_TO_CKPT = 'model/frozen_inference_graph_sim.pb'
         else:
             PATH_TO_CKPT = 'model/frozen_inference_graph_carla.pb'
