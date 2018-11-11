@@ -100,8 +100,10 @@ class WaypointUpdater(object):
         base_waypoints = self.base_waypoints.waypoints[closest_idx:farthest_idx]
         # If no traffic light was detected, publish the base_waypoints as it is
         if (self.stopline_wp_idx == -1) or (self.stopline_wp_idx >= farthest_idx):
+            print("Gen Lane - no light", self.stopline_wp_idx, closest_idx, (self.pose.pose.position.x, self.pose.pose.position.y))
             lane.waypoints = base_waypoints
         else:
+            print("Gen Lane - light", self.stopline_wp_idx, closest_idx, (self.pose.pose.position.x, self.pose.pose.position.y))
             lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)
 
         return lane
@@ -115,7 +117,7 @@ class WaypointUpdater(object):
             p.pose = wp.pose
         
             # 2 is subtracted to ensure that the front of the car stops at the stop line
-            stop_idx = max(self.stopline_wp_idx - closest_idx - 4, 0)
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
             # Sum of distance between waypoints (sum of line segments)
             dist = self.distance(waypoints, i, stop_idx)
         

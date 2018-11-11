@@ -39,7 +39,7 @@ BLUE_MIN = np.array([84,14,211],np.uint8)
 BLUE_MAX = np.array([104,34,291],np.uint8)
 
 class TLClassifier(object):
-    def __init__(self):
+    def __init__(self, is_site):
         #TODO load classifier
         print("Inside init")
         self.detection_graph = None
@@ -51,6 +51,7 @@ class TLClassifier(object):
                         3: TrafficLight.GREEN,
                         4: TrafficLight.UNKNOWN}
         self.prevclass = TrafficLight.UNKNOWN
+        self.is_site = is_site
         
         self.label_map = self.load_labelmap('model/trafficsignal.pbtxt')
         NUM_CLASSES = 1
@@ -142,21 +143,21 @@ class TLClassifier(object):
                 if cv2.countNonZero(frame_threshed1) + cv2.countNonZero(frame_threshed2) > 50:
                     lightcolor="RED"
                     self.prevclass = TrafficLight.RED
-                    print(lightcolor)
+                    #print(lightcolor)
 
                 frame_threshed3 = cv2.inRange(middlelight, YELLOW_MIN, YELLOW_MAX)
                 #print("Yellow count:",cv2.countNonZero(frame_threshed3),":",end='')
                 if cv2.countNonZero(frame_threshed3) > 50:
                     lightcolor="YELLOW"
                     self.prevclass = TrafficLight.YELLOW
-                    print(lightcolor)
+                    #print(lightcolor)
 
                 frame_threshed4 = cv2.inRange(bottomlight, GREEN_MIN, GREEN_MAX)
                 #print("Green count:",cv2.countNonZero(frame_threshed4), ":    ", end='')
                 if cv2.countNonZero(frame_threshed4) > 50:
                     lightcolor="GREEN"
                     self.prevclass = TrafficLight.GREEN
-                    print(lightcolor)
+                    #print(lightcolor)
                 #print("Time passed:", (datetime.datetime.now()-current_time).total_seconds())
             else:
                 self.prevclass = TrafficLight.UNKNOWN
@@ -165,7 +166,11 @@ class TLClassifier(object):
     
     def load_model(self):
         # Path to frozen detection graph. This is the actual model that is used for the object detection.
-        PATH_TO_CKPT = 'model/frozen_inference_graph_FullSizeImg.pb'
+        if self.is_site:
+            PATH_TO_CKPT = 'model/frozen_inference_graph_sim.pb'
+        else:
+            PATH_TO_CKPT = 'model/frozen_inference_graph_carla.pb'
+
         #src/tl_detector/light_classification/
         self.detection_graph = tf.Graph()
         config = tf.ConfigProto()

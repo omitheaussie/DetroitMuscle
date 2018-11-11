@@ -16,7 +16,7 @@ from timeit import default_timer as timer
 import math
 
 STATE_COUNT_THRESHOLD = 3
-FREQUENCY_IN_HERTZ = 15.0
+FREQUENCY_IN_HERTZ = 25.0
 
 class TLDetector(object):
     def __init__(self):
@@ -49,7 +49,7 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
+        self.light_classifier = TLClassifier(self.config['is_site'])
         self.listener = tf.TransformListener()
         
         self.state = TrafficLight.UNKNOWN
