@@ -17,7 +17,7 @@ This is the project where all the learning over past 8 months of the program is 
 
 We formed a group of 4 from our Cohurt and named our team '**Detroit Muscles**' as all of us belong to the Motor City - Detroit. Each of us worked on a seperate module independently, and after individual modules are built, we worked together to integrate each other and complete the system
 
-Our Team (in alphabetical Order)
+Our Team (In alphabetical Order)
 
 |     Name                | Role in the project           |     Github                                |
 | ----------------------- | ----------------------------- | ----------------------------------------- |
