@@ -1,4 +1,3 @@
-
 # Udacity Self-Driving Car Engineer Nanodegree
 
 ## Term 3 Project 3 : System Integration
