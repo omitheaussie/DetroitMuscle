@@ -19,11 +19,11 @@ We formed a group of 4 from our Cohurt and named our team '**Detroit Muscles**' 
 
 Our Team (In alphabetical Order)
 
-|     Name                | Role in the project           |     Github                                |
-| ----------------------- | ----------------------------- | ----------------------------------------- |
-| Nathan Nick Adams       | Waypoint Loading & Generation | [Github](https://github.com/xxx)      |
-| Omkar Karve (Team Lead) | Traffic Light Classification  | [Github](https://github.com/omitheaussie)      |
-| Ravi Kiran Savirigana   | Controls                      | [Github](https://github.com/mymachinelearnings)|
+|     Name                | Role in the project            |     Github                                |
+| ----------------------- | ------------------------------ | ----------------------------------------- |
+| Nick Adams              | Waypoint Loading & Generation  | [Github](https://github.com/nnadams)      |
+| Omkar Karve (Team Lead) | Traffic Light Classification   | [Github](https://github.com/omitheaussie)      |
+| Ravi Kiran Savirigana   | Controls                       | [Github](https://github.com/mymachinelearnings)|
 | Rui Li                  | Waypoint Generation & Updation | [Github](https://github.com/xxx)          |
 
 ---

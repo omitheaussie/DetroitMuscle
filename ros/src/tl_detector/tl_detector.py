@@ -197,6 +197,7 @@ class TLDetector(object):
 
                     dist_light = math.sqrt((self.pose.pose.position.x - light.pose.pose.position.x)**2 +
                                               (self.pose.pose.position.y - light.pose.pose.position.y)**2)
+                    print("Dist light", dist_light)
                     if dist_light > 75:
                         return -1, TrafficLight.UNKNOWN
                     #print('closest light --> ', light, '\n line_wp_idx --> ', line_wp_idx)
