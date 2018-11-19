@@ -39,16 +39,23 @@ The components of a Self Driving Car can be mainly divided into 4 components
    This consists of the hardware components that gather data about the environment. This includes Camera, Lidar, Radars, IMU(Inertial measurement unit), GPS sensors mounted on the car to name a few. This system basically provides the information about its surroundings to the Vehicle's perception subsystem
 
 ##### Perception
-   This subsystem consists of software to process sensor data. This processes the data received by different components of the the Sensor subsystem, combines them through sensor fusion techniques and harvests them to converts them to meaningful information. This is where most of the vehicles analysis of the environment takes place. This subsystem can be further divided into `detection` & `localization`. 
+   This subsystem consists of software to process sensor data. This processes the data received by different components of the the Sensor subsystem, combines them through sensor fusion techniques and harvests them to converts them to meaningful information. This is where most of the vehicles analysis of the environment takes place. This subsystem can be further divided into `detection` & `localization`.
+   
     Detection : The detection subsystem is responsible for understanding the surrounding environment like lane detection, traffic sign & light detection & classification, object detection & tracking and free space detection
+    
     Localization : The localization subsystem is responsible for using sensor and map data to determine the vehicle's precise location.
+    
     Note that each component of the perception subsystem relies on a different group of sensors.
 
 ##### Plannning
    The planning subsystem uses the output from perception for behavior planning and for both short and long range path plan. There are several components of the planning system 
+   
     Route Planning : high level path of the vehicle between two points on a map. Ths module uses Map data from Sensor subsystem
+    
     Prediction: This module identifies which maneuver other objects on the road might take
+    
     Behavior planning : Decides what maneuver our vehicle should take
+    
     Trajectory Generation : Plots the precise path(a set of points for next few steps) we'd like our vehicle to follow
 
 ##### Control
