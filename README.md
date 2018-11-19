@@ -7,7 +7,7 @@
 #### Project Writeup
 
 ---
-This is the 3rd and final project of Term 3 and 13th project overall as part Udacity's [Self Driving Car Engineer Nanodegree] (writeup/images/CarNDSyllabus.pdf)
+This is the 3rd and final project of Term 3 and 13th project overall as part Udacity's [Self Driving Car Engineer Nanodegree](writeup/images/CarNDSyllabus.pdf)
 
 This project involves End-End system integration for Self-driving Car that involves Perception, Planning & Control. The project involves implementing ROS(Robot Operating System) nodes to implement core functionality of the autonomous vehicle system, including traffic light classification, detection,waypoint generation, following & Controls. The code will be first tested in Udacity's Simulator, and once it passes through this stage, the code will be fed to Udacity's real Self driving Car a.k.a. *Carla* - how cool is it!
 
