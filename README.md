@@ -6,7 +6,7 @@
 #### Project Writeup
 
 ---
-This is the 3rd and final project of Term 3 and 13th project overall as part Udacity's [Self Driving Car Engineer Nanodegree] program(writeup/images/CarNDSyllabus.pdf)
+This is the 3rd and final project of Term 3 and 13th project overall as part Udacity's [Self Driving Car Engineer Nanodegree](writeup/images/CarNDSyllabus.pdf)
 
 This project involves End-End system integration for Self-driving Car that involves Perception, Planning & Control. The project involves implementing ROS(Robot Operating System) nodes to implement core functionality of the autonomous vehicle system, including traffic light classification, detection,waypoint generation, following & Controls. The code will be first tested in Udacity's Simulator, and once it passes through this stage, the code will be fed to Udacity's real Self driving Car a.k.a. *Carla* - how cool is it!
 
@@ -18,12 +18,12 @@ We formed a group of 4 from our Cohurt and named our team '**Detroit Muscles**' 
 
 Our Team (In alphabetical Order)
 
-|     Name                | Role in the project           |     Github                                |
-| ----------------------- | ----------------------------- | ----------------------------------------- |
-| Nathan Nick Adams       | Waypoint Loading & Generation | [Github](https://github.com/xxx)      |
-| Omkar Karve (Team Lead) | Traffic Light Classification  | [Github](https://github.com/omitheaussie)      |
-| Ravi Kiran Savirigana   | Controls                      | [Github](https://github.com/mymachinelearnings)|
-| Rui Li                  | Waypoint Generation & Updation | [Github](https://github.com/xxx)          |
+|     Name                | Role in the project            |     Github                                |
+| ----------------------- | ------------------------------ | ----------------------------------------- |
+| Nathan Nick Adams       | Waypoint Loading & Generation  | [Github](https://github.com/xxx)          |
+| Omkar Karve (Team Lead) | Traffic Light Classification   | [Github](https://github.com/omitheaussie)      |
+| Ravi Kiran Savirigana   | Controls                       | [Github](https://github.com/mymachinelearnings)|
+| Rui Li                  | Waypoint Generation & Updation | [Github](https://github.com/kyoleelee/Udacity-SelfDrivingCar)|
 
 ---
 
@@ -32,19 +32,26 @@ At a high level, the autonomous vehicle a.k.a. Self Driving Car's architecture c
 
 ![Autonomous Vehicle Architecture](writeup/images/AutonomousVehicleArch.png)
 
-The components of a Self Driving Car can be mainly divided into 4 components
+The components of a Self Driving Car can be mainly divided into 4 subsystem
 
 ##### Sensors
-    TODO
+    This consists of the hardware components that gather data about the environment. This includes Camera, Lidar, Radars, IMU(Inertial measurement unit), GPS sensors mounted on the car to name a few. This system basically provides the information about its surroundings to the Vehicle's perception subsystem
 
 ##### Perception
-    TODO
+    This subsystem consists of software to process sensor data. This processes the data received by different components of the the Sensor subsystem, combines them through sensor fusion techniques and harvests them to converts them to meaningful information. This is where most of the vehicles analysis of the environment takes place. This subsystem can be further divided into `detection` & `localization`. 
+    Detection : The detection subsystem is responsible for understanding the surrounding environment like lane detection, traffic sign & light detection & classification, object detection & tracking and free space detection
+    Localization : The localization subsystem is responsible for using sensor and map data to determine the vehicle's precise location.
+    Note that each component of the perception subsystem relies on a different group of sensors.
 
 ##### Plannning
-    TODO
+    The planning subsystem uses the output from perception for behavior planning and for both short and long range path plan. There are several components of the planning system 
+    Route Planning : high level path of the vehicle between two points on a map. Ths module uses Map data from Sensor subsystem
+    Prediction: This module identifies which maneuver other objects on the road might take
+    Behavior planning : Decides what maneuver our vehicle should take
+    Trajectory Generation : Plots the precise path(a set of points for next few steps) we'd like our vehicle to follow
 
 ##### Control
-    TODO
+    The control subsystem ensures that the vehicle follows the path provided by the planning subsystem and sends control commands to the vehicle. The control subsystem may include components such as PID controllers, model predictive controllers, or other type of controllers. subsystem sends acceleration, braking, and steering commands to the vehicle via a Drive-By-Wire(DBW) module which essentially converts electronic signals to physical controls of the vehicle
 
 #### Project Architecture
 
