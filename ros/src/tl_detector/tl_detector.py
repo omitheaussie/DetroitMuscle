@@ -30,18 +30,6 @@ class TLDetector(object):
         self.lights = []
         self.img_proc_time = 0
 
-        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-
-        '''
-        /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
-        helps you acquire an accurate ground truth data source for the traffic light
-        classifier by sending the current color state of all traffic lights in the
-        simulator. When testing on the vehicle, the color state will not be available. You'll need to
-        rely on the position of the light and the camera image to predict it.
-        '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
         
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -56,6 +44,19 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
+        print('TLDetector Initialized')
+        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+
+        '''
+        /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
+        helps you acquire an accurate ground truth data source for the traffic light
+        classifier by sending the current color state of all traffic lights in the
+        simulator. When testing on the vehicle, the color state will not be available. You'll need to
+        rely on the position of the light and the camera image to predict it.
+        '''
+        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
         
         rospy.spin()
         
@@ -154,7 +155,7 @@ class TLDetector(object):
          #print('just before classification')
          #self.light_classifier = TLClassifier()
         test_light = self.light_classifier.get_classification(cv_image)
-        #print(test_light)
+        #print('Classifier Output :: ',test_light)
         return test_light
 
     def process_traffic_lights(self):
@@ -197,7 +198,7 @@ class TLDetector(object):
 
                     dist_light = math.sqrt((self.pose.pose.position.x - light.pose.pose.position.x)**2 +
                                               (self.pose.pose.position.y - light.pose.pose.position.y)**2)
-                    print("Dist light", dist_light)
+                    #print("Dist light", dist_light)
                     if dist_light > 75:
                         return -1, TrafficLight.UNKNOWN
                     #print('closest light --> ', light, '\n line_wp_idx --> ', line_wp_idx)

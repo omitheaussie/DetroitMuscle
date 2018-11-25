@@ -41,7 +41,7 @@ BLUE_MAX = np.array([104,34,291],np.uint8)
 class TLClassifier(object):
     def __init__(self, is_site):
         #TODO load classifier
-        print("Inside init")
+        #print("Inside Classifier's Init")
         self.detection_graph = None
         self.session = None
         self.image_counter = 0
@@ -62,6 +62,7 @@ class TLClassifier(object):
         self.config = yaml.load(config_string)
         
         self.load_model()
+        print('TLClassifier Initialized')
         #self.sess = tf.Session()
         #tf.saved_model.loader.load(self.sess, [], 'model/frozen_inference_graph.pb')
         #self.detection_graph = tf.get_default_graph()
