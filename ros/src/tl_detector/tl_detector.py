@@ -14,6 +14,7 @@ from scipy.spatial import KDTree
 from PIL import Image as pilImage
 from timeit import default_timer as timer
 import math
+import numpy as np
 
 STATE_COUNT_THRESHOLD = 3
 FREQUENCY_IN_HERTZ = 25.0
@@ -45,6 +46,12 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
         print('TLDetector Initialized')
+        
+        #Dummy call to overcome the initial 2 sec execution of classifier
+        blank_image = np.zeros((300,400,3), np.uint8)
+        self.light_classifier.get_classification(blank_image)
+        print('Classifier called in TLDetector Init to save time')
+        
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
